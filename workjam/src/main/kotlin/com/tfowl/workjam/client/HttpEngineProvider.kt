@@ -9,7 +9,7 @@ interface HttpEngineProvider {
     fun defaultUrlBuilder(): URLBuilder
 }
 
-open class DefaultHttpEngineProvider(private val host: String = "gcp-usa-common-api.workjam.com") :
+open class DefaultHttpEngineProvider(private val host: String = "api.workjam.com") :
     HttpEngineProvider {
     override fun provide(): HttpClientEngine = Java.create()
     override fun defaultUrlBuilder(): URLBuilder {

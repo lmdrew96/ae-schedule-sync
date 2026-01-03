@@ -26,7 +26,7 @@ fun CliktCommand.googleClientSecretsOption() = mutuallyExclusiveOptions(
 ).single()
 
 
-class WooliesRosterCommand : NoOpCliktCommand(name = "woolies-roster") {
+class AEScheduleCommand : NoOpCliktCommand(name = "ae-schedule") {
     init {
         context {
             helpFormatter = {
@@ -41,7 +41,7 @@ class WooliesRosterCommand : NoOpCliktCommand(name = "woolies-roster") {
 }
 
 fun main(vararg args: String) {
-    WooliesRosterCommand().subcommands(
+    AEScheduleCommand().subcommands(
         Sync(), Feed(), Contract()
     ).main(args)
 }

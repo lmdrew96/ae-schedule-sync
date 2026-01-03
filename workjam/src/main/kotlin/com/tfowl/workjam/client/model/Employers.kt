@@ -116,11 +116,11 @@ data class Region(
 
 @Serializable
 data class Telephone(
-    val id: Long,
+    val id: Long? = null,
     val type: String? = null,
     val countryCode: String? = null,
     val number: String? = null,
     val extension: String? = null,
     val fullNumber: JsonObject? = null,
-    val isDirty: Boolean
+    val isDirty: Boolean? = null
 )

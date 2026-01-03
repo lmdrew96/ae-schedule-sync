@@ -83,7 +83,7 @@ class Feed : CliktCommand(name = "feed", help = "Convert your workjam schedule t
         val workjamEvents = workjam.events(company.id.toString(), workjam.userId, startDateTime, endDateTime)
 
         val calendar = Calendar()
-            .withProdId("-//github.com/tfowl.com//woolies-roster-sync//EN")
+            .withProdId("-//github.com/tfowl.com//ae-schedule-sync//EN")
             .withDefaults()
             .withProperty(LastModified(Instant.now()))
 

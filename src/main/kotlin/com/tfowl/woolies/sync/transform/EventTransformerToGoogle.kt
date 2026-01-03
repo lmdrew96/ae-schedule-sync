@@ -68,13 +68,18 @@ internal class EventTransformerToGoogle(
         }
 
         val storeRosterAsync = async(Dispatchers.IO) {
-            workjam.shifts(
-                company,
-                location.id,
-                startDateTime = LocalDate.ofInstant(event.startDateTime, zone).atStartOfDay(zone).toOffsetDateTime(),
-                endDateTime = LocalDate.ofInstant(event.startDateTime, zone).plusDays(1).atStartOfDay(zone)
-                    .toOffsetDateTime()
-            )
+            try {
+                workjam.shifts(
+                    company,
+                    location.id,
+                    startDateTime = LocalDate.ofInstant(event.startDateTime, zone).atStartOfDay(zone).toOffsetDateTime(),
+                    endDateTime = LocalDate.ofInstant(event.startDateTime, zone).plusDays(1).atStartOfDay(zone)
+                        .toOffsetDateTime()
+                )
+            } catch (e: Exception) {
+                // May not have permission to view all shifts at this location
+                emptyList()
+            }
         }
 
         val store = storeAsync.await()
@@ -164,7 +169,7 @@ private fun Store.renderAddress(): String = buildString {
     val address = storeAddress
 
     // TODO: This is only really designed to work with stores
-    append("Woolworths, ")
+    append("American Eagle, ")
     append(address.streetLine1)
     address.streetLine2?.let { append(' ').append(it) }
     address.streetLine3?.let { append(' ').append(it) }
