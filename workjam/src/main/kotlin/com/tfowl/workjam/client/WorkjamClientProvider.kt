@@ -3,7 +3,6 @@ package com.tfowl.workjam.client
 import com.tfowl.workjam.client.model.WorkjamUser
 import com.tfowl.workjam.client.model.serialisers.InstantSerialiser
 import io.ktor.client.*
-import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
@@ -16,10 +15,18 @@ import kotlinx.serialization.modules.contextual
 import java.time.format.DateTimeFormatter
 import java.util.*
 
-internal const val WorkjamTokenHeader = "x-token"
 private const val ORIGIN_URL = "https://app.workjam.com"
 private const val REFERRER_URL = "https://app.workjam.com/"
 private val ACCEPTED_LANGUAGE = Locale.ENGLISH
+
+private fun parseJwtUserId(token: String): Long {
+    val parts = token.removePrefix("Bearer ").split(".")
+    require(parts.size == 3) { "Invalid JWT token format" }
+    val payload = String(Base64.getUrlDecoder().decode(parts[1]))
+    val subMatch = """"sub"\s*:\s*"(\d+)"""".toRegex().find(payload)
+    requireNotNull(subMatch) { "Could not find 'sub' claim in JWT" }
+    return subMatch.groupValues[1].toLong()
+}
 
 class WorkjamClientProvider(
     private val credentials: WorkjamCredentialStorage,
@@ -57,24 +64,28 @@ class WorkjamClientProvider(
         }
     }
 
-    private suspend fun authenticateUser(oldToken: String): WorkjamUser {
-        return client.patch(httpEngineProvider.defaultUrlBuilder().build()) {
-            url.path("auth", "v3")
-            header(WorkjamTokenHeader, oldToken)
-        }.body()
+    private fun createUserFromToken(token: String): WorkjamUser {
+        val userId = parseJwtUserId(token)
+        return WorkjamUser(
+            token = token,
+            userId = userId,
+            firstLogin = false,
+            hasEmployers = true,
+            userRole = "EMPLOYEE",
+            correlationId = "",
+            employers = emptyList()
+        )
     }
 
     private suspend fun retrieveAuthenticatedUser(
         ref: String,
         tokenOverride: String?
     ): WorkjamUser {
-        val oldToken = requireNotNull(tokenOverride ?: credentials.retrieve(ref)) {
+        val token = requireNotNull(tokenOverride ?: credentials.retrieve(ref)) {
             "No token available for user reference id: $ref"
         }
 
-        return authenticateUser(oldToken).also {
-            credentials.store(ref, it.token)
-        }
+        return createUserFromToken(token)
     }
 
     suspend fun createClient(ref: String, tokenOverride: String? = null): WorkjamClient {

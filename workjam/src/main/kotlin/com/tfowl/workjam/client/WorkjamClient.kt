@@ -52,7 +52,7 @@ class DefaultWorkjamClient internal constructor(
 
     private suspend inline fun <reified T> get(requestUrlBuilder: URLBuilder.() -> Unit): T {
         return client.get {
-            header(WorkjamTokenHeader, user.token)
+            header(HttpHeaders.Authorization, "Bearer ${user.token}")
             url.takeFrom(defaultUrl)
             url.requestUrlBuilder()
         }.body()
